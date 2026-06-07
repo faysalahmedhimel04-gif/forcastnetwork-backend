@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getAuthenticatedUser } from '@/lib/auth'
 import { z } from 'zod'
 import type { ApiResponse, Forecast } from '@/types'
+import { applyCorsHeaders } from '@/lib/cors'
 
 // Validation schemas
 const createForecastSchema = z.object({
@@ -61,10 +62,12 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query
 
     if (error) {
-      return NextResponse.json<ApiResponse<null>>({ error: error.message }, { status: 500 })
+      const res = NextResponse.json<ApiResponse<null>>({ error: error.message }, { status: 500 })
+      return applyCorsHeaders(res, request.headers.get('origin'))
     }
 
-    return NextResponse.json<ApiResponse<Forecast[]>>({ data: data as Forecast[] })
+    const res = NextResponse.json<ApiResponse<Forecast[]>>({ data: data as Forecast[] })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   } catch (err) {
     return NextResponse.json<ApiResponse<null>>({ error: 'Internal server error' }, { status: 500 })
   }
@@ -77,7 +80,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const user = await getAuthenticatedUser(request)
   if (!user) {
-    return NextResponse.json<ApiResponse<null>>({ error: 'Unauthorized' }, { status: 401 })
+    const res = NextResponse.json<ApiResponse<null>>({ error: 'Unauthorized' }, { status: 401 })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   }
 
   try {
@@ -85,10 +89,11 @@ export async function POST(request: NextRequest) {
     const parsed = createForecastSchema.safeParse(body)
 
     if (!parsed.success) {
-      return NextResponse.json<ApiResponse<null>>(
+      const res = NextResponse.json<ApiResponse<null>>(
         { error: parsed.error.issues[0]?.message || 'Invalid data' },
         { status: 400 }
       )
+      return applyCorsHeaders(res, request.headers.get('origin'))
     }
 
     const supabase = await createClient()
@@ -103,11 +108,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      return NextResponse.json<ApiResponse<null>>({ error: error.message }, { status: 500 })
+      const res = NextResponse.json<ApiResponse<null>>({ error: error.message }, { status: 500 })
+      return applyCorsHeaders(res, request.headers.get('origin'))
     }
 
-    return NextResponse.json<ApiResponse<Forecast>>({ data: data as Forecast }, { status: 201 })
+    const res = NextResponse.json<ApiResponse<Forecast>>({ data: data as Forecast }, { status: 201 })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   } catch (err) {
-    return NextResponse.json<ApiResponse<null>>({ error: 'Invalid request body' }, { status: 400 })
+    const res = NextResponse.json<ApiResponse<null>>({ error: 'Invalid request body' }, { status: 400 })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { ApiResponse, LeaderboardEntry } from '@/types'
+import { applyCorsHeaders } from '@/lib/cors'
 
 /**
  * GET /api/leaderboard
@@ -22,11 +23,14 @@ export async function GET(request: NextRequest) {
       .limit(limit)
 
     if (error) {
-      return NextResponse.json<ApiResponse<null>>({ error: error.message }, { status: 500 })
+      const res = NextResponse.json<ApiResponse<null>>({ error: error.message }, { status: 500 })
+      return applyCorsHeaders(res, request.headers.get('origin'))
     }
 
-    return NextResponse.json<ApiResponse<LeaderboardEntry[]>>({ data: data as LeaderboardEntry[] })
+    const res = NextResponse.json<ApiResponse<LeaderboardEntry[]>>({ data: data as LeaderboardEntry[] })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   } catch (err) {
-    return NextResponse.json<ApiResponse<null>>({ error: 'Internal server error' }, { status: 500 })
+    const res = NextResponse.json<ApiResponse<null>>({ error: 'Internal server error' }, { status: 500 })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   }
 }

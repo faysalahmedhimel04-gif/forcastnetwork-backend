@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import type { ApiResponse } from '@/types'
+import { applyCorsHeaders } from '@/lib/cors'
 
 /**
  * GET /api/health
@@ -7,12 +8,12 @@ import type { ApiResponse } from '@/types'
  * Also reports whether critical Supabase env vars are present (safe, no secret values).
  * Useful after Vercel deploy to confirm env configuration without checking logs immediately.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL
   const hasAnon = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const hasService = !!process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  return NextResponse.json<ApiResponse<{
+  const res = NextResponse.json<ApiResponse<{
     status: string
     timestamp: string
     supabase: { url: boolean; anonKey: boolean; serviceRole: boolean }
@@ -31,4 +32,6 @@ export async function GET() {
       })
     },
   })
+
+  return applyCorsHeaders(res, request.headers.get('origin'))
 }

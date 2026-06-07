@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthenticatedUser } from '@/lib/auth'
 import { z } from 'zod'
 import type { ApiResponse, Forecast } from '@/types'
+import { applyCorsHeaders } from '@/lib/cors'
 
 const resolveSchema = z.object({
   resolved_outcome: z.string().min(1),
@@ -31,12 +32,15 @@ export async function GET(
       .single()
 
     if (error || !data) {
-      return NextResponse.json<ApiResponse<null>>({ error: 'Forecast not found' }, { status: 404 })
+      const res = NextResponse.json<ApiResponse<null>>({ error: 'Forecast not found' }, { status: 404 })
+      return applyCorsHeaders(res, request.headers.get('origin'))
     }
 
-    return NextResponse.json<ApiResponse<any>>({ data })
+    const res = NextResponse.json<ApiResponse<any>>({ data })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   } catch (err) {
-    return NextResponse.json<ApiResponse<null>>({ error: 'Internal server error' }, { status: 500 })
+    const res = NextResponse.json<ApiResponse<null>>({ error: 'Internal server error' }, { status: 500 })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   }
 }
 
@@ -52,7 +56,8 @@ export async function PATCH(
   const user = await getAuthenticatedUser(request)
 
   if (!user) {
-    return NextResponse.json<ApiResponse<null>>({ error: 'Unauthorized' }, { status: 401 })
+    const res = NextResponse.json<ApiResponse<null>>({ error: 'Unauthorized' }, { status: 401 })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   }
 
   try {
@@ -60,7 +65,8 @@ export async function PATCH(
     const parsed = resolveSchema.safeParse(body)
 
     if (!parsed.success) {
-      return NextResponse.json<ApiResponse<null>>({ error: 'Invalid resolution data' }, { status: 400 })
+      const res = NextResponse.json<ApiResponse<null>>({ error: 'Invalid resolution data' }, { status: 400 })
+      return applyCorsHeaders(res, request.headers.get('origin'))
     }
 
     const supabase = await createClient()
@@ -73,11 +79,13 @@ export async function PATCH(
       .single()
 
     if (!forecast || forecast.user_id !== user.id) {
-      return NextResponse.json<ApiResponse<null>>({ error: 'You can only resolve your own forecasts' }, { status: 403 })
+      const res = NextResponse.json<ApiResponse<null>>({ error: 'You can only resolve your own forecasts' }, { status: 403 })
+      return applyCorsHeaders(res, request.headers.get('origin'))
     }
 
     if (forecast.status === 'resolved') {
-      return NextResponse.json<ApiResponse<null>>({ error: 'Forecast is already resolved' }, { status: 400 })
+      const res = NextResponse.json<ApiResponse<null>>({ error: 'Forecast is already resolved' }, { status: 400 })
+      return applyCorsHeaders(res, request.headers.get('origin'))
     }
 
     const isCorrect = forecast.predicted_outcome.toLowerCase().trim() ===
@@ -97,11 +105,14 @@ export async function PATCH(
       .single()
 
     if (error) {
-      return NextResponse.json<ApiResponse<null>>({ error: error.message }, { status: 500 })
+      const res = NextResponse.json<ApiResponse<null>>({ error: error.message }, { status: 500 })
+      return applyCorsHeaders(res, request.headers.get('origin'))
     }
 
-    return NextResponse.json<ApiResponse<Forecast>>({ data: data as Forecast, message: 'Forecast resolved successfully' })
+    const res = NextResponse.json<ApiResponse<Forecast>>({ data: data as Forecast, message: 'Forecast resolved successfully' })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   } catch (err) {
-    return NextResponse.json<ApiResponse<null>>({ error: 'Invalid request' }, { status: 400 })
+    const res = NextResponse.json<ApiResponse<null>>({ error: 'Invalid request' }, { status: 400 })
+    return applyCorsHeaders(res, request.headers.get('origin'))
   }
 }
