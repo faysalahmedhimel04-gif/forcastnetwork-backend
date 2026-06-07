@@ -39,9 +39,9 @@ forcastnetwork-backend/
 ├── lib/
 │   ├── supabase/
 │   │   ├── server.ts           # Server + Admin clients
-│   │   └── middleware.ts
+│   │   └── session.ts          # Supabase session refresh logic + env guards (used by proxy)
 │   └── auth.ts                 # Token extraction helper
-├── middleware.ts               # Supabase session middleware
+├── proxy.ts                    # Edge proxy (Supabase session handling)
 ├── types/
 │   └── index.ts                # Shared TypeScript types
 ├── .env.example
@@ -57,7 +57,7 @@ forcastnetwork-backend/
   - `createClient()`: For user-authenticated operations (uses anon key + user token).
   - `createAdminClient()`: Service role (bypasses RLS, use carefully).
 - **lib/auth.ts** — `getAuthenticatedUser(request)` extracts and validates the Bearer token sent by the frontend.
-- **middleware.ts** — Runs on the Edge. Can be extended for logging or additional checks.
+- **proxy.ts** — Edge proxy for Supabase session cookie handling (mostly lightweight for this token-based API backend).
 - **app/api/forecasts/route.ts** — Core CRUD for forecasts with Zod validation.
 - **app/api/forecasts/[id]/route.ts** — Resolve endpoint (owner-only).
 - **app/api/comments/route.ts**, **follows**, **profiles**, **leaderboard** — Supporting endpoints.
