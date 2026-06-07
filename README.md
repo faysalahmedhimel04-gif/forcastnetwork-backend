@@ -58,11 +58,14 @@ forcastnetwork-backend/
   - `createAdminClient()`: Service role (bypasses RLS, use carefully).
 - **lib/auth.ts** — `getAuthenticatedUser(request)` extracts and validates the Bearer token sent by the frontend.
 - **proxy.ts** — Edge proxy for Supabase session cookie handling (mostly lightweight for this token-based API backend).
+- Visit the deployed root (`/`) for a full interactive-style API reference with examples, auth notes, and request/response shapes.
 - **app/api/forecasts/route.ts** — Core CRUD for forecasts with Zod validation.
 - **app/api/forecasts/[id]/route.ts** — Resolve endpoint (owner-only).
 - **app/api/comments/route.ts**, **follows**, **profiles**, **leaderboard** — Supporting endpoints.
 - **app/api/markets/route.ts** — Proxy for Polymarket data (avoids CORS + centralizes external calls).
 - **types/index.ts** — Shared types matching the frontend.
+
+**Live API Reference**: Deployed backend root (`/`) shows a detailed, self-documenting reference with examples for every endpoint.
 
 ## Setup
 
