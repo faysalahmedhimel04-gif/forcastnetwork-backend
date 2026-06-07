@@ -9,10 +9,11 @@ import { applyCorsHeaders, getAllowedOrigin } from '@/lib/cors'
  * headers on API routes (see lib/auth.ts + getAuthenticatedUser). This proxy mainly provides
  * the standard Supabase cookie session refresh behavior for any future cookie-based flows.
  *
- * We migrated from the deprecated `middleware.ts` → `proxy.ts` (Next.js 16+).
  * Internal session logic: lib/supabase/session.ts
  *
  * We also handle CORS here so the frontend (on a different Vercel domain) can call the API.
+ *
+ * Note: Fully migrated to the current "proxy.ts" file convention (Next.js 16+).
  */
 export async function proxy(request: NextRequest) {
   const origin = getAllowedOrigin(request.headers.get('origin'))
@@ -30,7 +31,7 @@ export async function proxy(request: NextRequest) {
     }
     return response
   } catch (error) {
-    // Safety net: never let proxy throw and produce MIDDLEWARE_INVOCATION_FAILED 500s.
+    // Safety net: never let proxy throw and produce hard 500s at the edge.
     console.error('[Proxy] Session update error (continuing):', error)
     const response = NextResponse.next()
     if (request.nextUrl.pathname.startsWith('/api/')) {
