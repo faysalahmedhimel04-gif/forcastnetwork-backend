@@ -25,6 +25,36 @@ const endpoints: EndpointDoc[] = [
   },
   {
     methods: ['GET'],
+    path: '/api/admin/forecasts',
+    description: 'Admin list of all forecasts (bypasses RLS using service role). Supports advanced filtering.',
+    auth: false,
+    queryParams: [
+      { name: 'q', type: 'string', description: 'Search in title' },
+      { name: 'status', type: 'string', description: 'open | resolved' },
+      { name: 'category', type: 'string', description: 'Filter by category' },
+      { name: 'limit', type: 'number', description: 'default 50' },
+    ],
+    responses: {
+      success: '{ "data": { "forecasts": Forecast[], "total": number } }',
+      errors: []
+    }
+  },
+  {
+    methods: ['GET', 'PATCH', 'DELETE'],
+    path: '/api/admin/forecasts/[id]',
+    description: 'Full admin control over any forecast (view, arbitrary updates, permanent delete).',
+    auth: false,
+    body: {
+      description: 'For PATCH: any forecast fields + status/resolved_outcome',
+      example: '{ "status": "resolved", "resolved_outcome": "No" }'
+    },
+    responses: {
+      success: 'Updated forecast or { deleted: true }',
+      errors: ['404', '500']
+    }
+  },
+  {
+    methods: ['GET'],
     path: '/api/forecasts',
     description: 'List forecasts with optional filters. Returns most recent first.',
     auth: false,
@@ -241,6 +271,12 @@ export default function ApiDocs() {
           </div>
           <div className="flex items-center gap-4 text-sm">
             <a href="https://github.com/faysalahmedhimel04-gif/forcastnetwork-backend" target="_blank" className="text-zinc-400 hover:text-white transition">GitHub</a>
+            <Link 
+              href="/manage/forecasts" 
+              className="px-4 py-1.5 rounded-lg bg-emerald-500 text-black text-sm font-medium hover:bg-emerald-400 transition"
+            >
+              Manage Forecasts
+            </Link>
             <Link href="/api/health" className="px-4 py-1.5 rounded-lg bg-white text-black text-sm font-medium hover:bg-zinc-200 transition">
               Test /api/health
             </Link>
