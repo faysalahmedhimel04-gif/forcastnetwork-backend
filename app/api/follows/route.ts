@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthenticatedUser } from '@/lib/auth'
+import { ensureProfileForUser } from '@/lib/profiles'
 import { z } from 'zod'
 import type { ApiResponse } from '@/types'
 
@@ -17,6 +18,13 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json<ApiResponse<null>>({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  // Ensure the caller has a profile row (required by FKs on follows and forecasts)
+  await ensureProfileForUser({
+    id: user.id,
+    email: user.email,
+    user_metadata: user.user_metadata,
+  })
 
   try {
     const body = await request.json()

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getAuthenticatedUser } from '@/lib/auth'
+import { ensureProfileForUser } from '@/lib/profiles'
 import { z } from 'zod'
 import type { ApiResponse, Forecast } from '@/types'
 import { applyCorsHeaders } from '@/lib/cors'
@@ -83,6 +84,13 @@ export async function POST(request: NextRequest) {
     const res = NextResponse.json<ApiResponse<null>>({ error: 'Unauthorized' }, { status: 401 })
     return applyCorsHeaders(res, request.headers.get('origin'))
   }
+
+  // Ensure profile row exists (handles cases where DB trigger did not run or username collision occurred)
+  await ensureProfileForUser({
+    id: user.id,
+    email: user.email,
+    user_metadata: user.user_metadata,
+  })
 
   try {
     const body = await request.json()
